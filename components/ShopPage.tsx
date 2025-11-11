@@ -11,8 +11,9 @@ const ShopPage: React.FC = () => {
   const [sortOption, setSortOption] = useState('newest');
 
   const sortedProducts = products ? [...products].sort((a, b) => {
-    const priceA = parseFloat(a.variants.nodes[0].price.amount);
-    const priceB = parseFloat(b.variants.nodes[0].price.amount);
+    // Defensive access to price to prevent crashes
+    const priceA = parseFloat(a.variants?.nodes?.[0]?.price?.amount || '0');
+    const priceB = parseFloat(b.variants?.nodes?.[0]?.price?.amount || '0');
     switch (sortOption) {
       case 'price-low-high':
         return priceA - priceB;

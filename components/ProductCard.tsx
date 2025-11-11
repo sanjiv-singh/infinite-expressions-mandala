@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-// import { useWishlist } from '../context/WishlistContext';
+import { useWishlist } from '../context/WishlistContext';
 import { reviews } from '../constants';
 import StarRating from './StarRating';
 import { HeartIcon } from './IconComponents';
@@ -13,13 +13,19 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
-  // const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
+  // Defensive coding: Ensure variant exists before trying to access its properties.
+  const variant = product.variants?.nodes?.[0];
+  if (!variant) {
+    // Don't render the card if the product has no variants.
+    return null;
+  }
+  
   // Wishlist and Review logic would need to be re-mapped to use product.handle or product.id
   const averageRating = 0; // Placeholder
   const reviewCount = 0; // Placeholder
 
-  const variant = product.variants.nodes[0];
   const price = variant.price;
   const compareAtPrice = variant.compareAtPrice;
   const imageUrl = product.images.nodes[0]?.url;
@@ -32,12 +38,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
   };
 
-  // const isWishlisted = isInWishlist(product.id);
-  const isWishlisted = false; // Placeholder
+  const isWishlisted = isInWishlist(product.id);
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Wishlist logic here
+    if (isWishlisted) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
   };
 
   return (

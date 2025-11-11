@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { reviews } from '../constants';
 import { useCart } from '../context/CartContext';
-// import { useWishlist } from '../context/WishlistContext';
+import { useWishlist } from '../context/WishlistContext';
 import StarRating from './StarRating';
 import { HeartIcon } from './IconComponents';
 import { useProduct } from '@shopify/buy-react';
@@ -13,23 +13,26 @@ const ProductDetailPage: React.FC = () => {
   const { data: product, loading } = useProduct({ handle });
 
   const { addToCart } = useCart();
-  // const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   
   const [mainImage, setMainImage] = useState<string | undefined>(undefined);
   
-  // Note: Review and Wishlist logic needs re-mapping to Shopify's product.id or product.handle
+  // Note: Review logic needs re-mapping to Shopify's product.id or product.handle
   const reviewCount = 0;
   const averageRating = 0;
+
+  const variant = product?.variants?.nodes[0];
+  const isWishlisted = product ? isInWishlist(product.id) : false;
 
   if (loading) {
     return <div className="text-center py-20">Loading product...</div>;
   }
 
-  if (!product) {
-    return <div className="text-center py-20">Artwork not found.</div>;
+  // Defensive check for product and variant
+  if (!product || !variant) {
+    return <div className="text-center py-20">Artwork not found or is unavailable.</div>;
   }
   
-  const variant = product.variants.nodes[0];
   const images = product.images.nodes;
   const currentImage = mainImage ?? images[0]?.url;
 
@@ -39,8 +42,13 @@ const ProductDetailPage: React.FC = () => {
     }
   }
   
-  const isWishlisted = false; // Placeholder
-  const handleWishlistToggle = () => { /* Wishlist logic here */ };
+  const handleWishlistToggle = () => {
+    if (isWishlisted) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">

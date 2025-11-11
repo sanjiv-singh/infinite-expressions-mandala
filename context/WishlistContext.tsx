@@ -1,38 +1,35 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-// import type { Artwork } from '../types';
-
-// TODO: Update wishlist to use Shopify Product type
-type Artwork = any;
+import type { Product } from '@shopify/buy-react';
 
 interface WishlistContextType {
-  wishlistItems: Artwork[];
-  addToWishlist: (artwork: Artwork) => void;
-  removeFromWishlist: (artworkId: number | string) => void;
-  isInWishlist: (artworkId: number | string) => boolean;
+  wishlistItems: Product[];
+  addToWishlist: (product: Product) => void;
+  removeFromWishlist: (productId: string) => void;
+  isInWishlist: (productId: string) => boolean;
   getWishlistItemCount: () => number;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [wishlistItems, setWishlistItems] = useState<Artwork[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
 
-  const addToWishlist = (artwork: Artwork) => {
+  const addToWishlist = (product: Product) => {
     setWishlistItems(prevItems => {
-      if (!prevItems.find(item => item.id === artwork.id)) {
-        return [...prevItems, artwork];
+      if (!prevItems.find(item => item.id === product.id)) {
+        return [...prevItems, product];
       }
       return prevItems;
     });
   };
 
-  const removeFromWishlist = (artworkId: number | string) => {
-    setWishlistItems(prevItems => prevItems.filter(item => item.id !== artworkId));
+  const removeFromWishlist = (productId: string) => {
+    setWishlistItems(prevItems => prevItems.filter(item => item.id !== productId));
   };
 
-  const isInWishlist = (artworkId: number | string) => {
-    return wishlistItems.some(item => item.id === artworkId);
+  const isInWishlist = (productId: string) => {
+    return wishlistItems.some(item => item.id === productId);
   };
   
   const getWishlistItemCount = () => {
