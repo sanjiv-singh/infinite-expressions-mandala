@@ -1,62 +1,57 @@
+import React, { createContext, useContext, ReactNode, useCallback } from 'react';
+import { useCart as useShopifyCart, useCartLinesAdd, useCartLinesRemove, useCartLinesUpdate } from '@shopify/buy-react';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { CartItem, Artwork } from '../types';
+// This type is a placeholder. You would typically get more specific types from the SDK.
+type ShopifyProductVariant = {
+  id: string;
+};
 
 interface CartContextType {
-  cartItems: CartItem[];
-  addToCart: (artwork: Artwork) => void;
-  removeFromCart: (artworkId: number) => void;
-  clearCart: () => void;
-  getCartTotal: () => number;
+  cart: ReturnType<typeof useShopifyCart>;
+  addToCart: (variant: ShopifyProductVariant, quantity?: number) => void;
+  removeFromCart: (lineId: string) => void;
+  updateQuantity: (lineId: string, quantity: number) => void;
+  getCartTotal: () => string;
   getItemCount: () => number;
+  checkoutUrl: string | null;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const cart = useShopifyCart();
+  const addLines = useCartLinesAdd();
+  const removeLines = useCartLinesRemove();
+  const updateLines = useCartLinesUpdate();
 
-  const addToCart = (artwork: Artwork) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.artwork.id === artwork.id);
-      if (existingItem) {
-        return prevItems.map(item =>
-          item.artwork.id === artwork.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prevItems, { artwork, quantity: 1 }];
-    });
-  };
+  const addToCart = useCallback((variant: ShopifyProductVariant, quantity: number = 1) => {
+    addLines([{ merchandiseId: variant.id, quantity }]);
+  }, [addLines]);
 
-  const removeFromCart = (artworkId: number) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.artwork.id === artworkId);
-      if (existingItem && existingItem.quantity > 1) {
-        return prevItems.map(item =>
-          item.artwork.id === artworkId ? { ...item, quantity: item.quantity - 1 } : item
-        );
-      }
-      return prevItems.filter(item => item.artwork.id !== artworkId);
-    });
-  };
+  const removeFromCart = useCallback((lineId: string) => {
+    removeLines([lineId]);
+  }, [removeLines]);
 
-  const clearCart = () => {
-    setCartItems([]);
-  };
+  const updateQuantity = useCallback((lineId: string, quantity: number) => {
+    if (quantity > 0) {
+      updateLines([{ id: lineId, quantity }]);
+    } else {
+      removeFromCart(lineId);
+    }
+  }, [updateLines, removeFromCart]);
 
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const price = item.artwork.discountedPrice ?? item.artwork.price;
-      return total + price * item.quantity;
-    }, 0);
-  };
-  
-  const getItemCount = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
+    return cart?.cost?.totalAmount?.amount ?? '0.00';
   };
 
+  const getItemCount = () => {
+    return cart?.lines?.reduce((total, line) => total + line.quantity, 0) ?? 0;
+  };
+  
+  const checkoutUrl = cart?.checkoutUrl ?? null;
+
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, clearCart, getCartTotal, getItemCount }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, getCartTotal, getItemCount, checkoutUrl }}>
       {children}
     </CartContext.Provider>
   );
@@ -65,7 +60,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error('useCart must be used within a CartProvider and ShopifyProvider');
   }
   return context;
 };

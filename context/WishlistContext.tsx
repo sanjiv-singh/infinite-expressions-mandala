@@ -1,12 +1,15 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { Artwork } from '../types';
+// import type { Artwork } from '../types';
+
+// TODO: Update wishlist to use Shopify Product type
+type Artwork = any;
 
 interface WishlistContextType {
   wishlistItems: Artwork[];
   addToWishlist: (artwork: Artwork) => void;
-  removeFromWishlist: (artworkId: number) => void;
-  isInWishlist: (artworkId: number) => boolean;
+  removeFromWishlist: (artworkId: number | string) => void;
+  isInWishlist: (artworkId: number | string) => boolean;
   getWishlistItemCount: () => number;
 }
 
@@ -24,11 +27,11 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }
     });
   };
 
-  const removeFromWishlist = (artworkId: number) => {
+  const removeFromWishlist = (artworkId: number | string) => {
     setWishlistItems(prevItems => prevItems.filter(item => item.id !== artworkId));
   };
 
-  const isInWishlist = (artworkId: number) => {
+  const isInWishlist = (artworkId: number | string) => {
     return wishlistItems.some(item => item.id === artworkId);
   };
   

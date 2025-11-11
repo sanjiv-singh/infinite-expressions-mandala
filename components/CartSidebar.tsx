@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useCart } from '../context/CartContext';
 import { XIcon, PlusIcon, MinusIcon } from './IconComponents';
@@ -9,7 +8,14 @@ interface CartSidebarProps {
 }
 
 const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
-  const { cartItems, removeFromCart, addToCart, getCartTotal } = useCart();
+  const { cart, updateQuantity, getCartTotal, checkoutUrl } = useCart();
+  const cartItems = cart?.lines ?? [];
+
+  const handleCheckout = () => {
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
+    }
+  };
 
   return (
     <>
@@ -38,22 +44,22 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
               <div className="flex-grow overflow-y-auto p-6">
                 <ul className="space-y-4">
                   {cartItems.map(item => (
-                    <li key={item.artwork.id} className="flex items-center space-x-4">
-                      <img src={item.artwork.imageUrl} alt={item.artwork.title} className="w-20 h-20 object-cover rounded-md" />
+                    <li key={item.id} className="flex items-center space-x-4">
+                      <img src={item.merchandise.image?.url} alt={item.merchandise.product.title} className="w-20 h-20 object-cover rounded-md" />
                       <div className="flex-grow">
-                        <h3 className="font-bold">{item.artwork.title}</h3>
-                        <p className="text-sm text-gray-400">${item.artwork.discountedPrice ?? item.artwork.price}</p>
+                        <h3 className="font-bold">{item.merchandise.product.title}</h3>
+                        <p className="text-sm text-gray-400">${item.merchandise.price.amount}</p>
                         <div className="flex items-center space-x-2 mt-2">
-                          <button onClick={() => removeFromCart(item.artwork.id)} className="p-1 border border-subtle-separator rounded-full hover:bg-subtle-separator">
+                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 border border-subtle-separator rounded-full hover:bg-subtle-separator">
                             <MinusIcon />
                           </button>
                           <span>{item.quantity}</span>
-                           <button onClick={() => addToCart(item.artwork)} className="p-1 border border-subtle-separator rounded-full hover:bg-subtle-separator">
+                           <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 border border-subtle-separator rounded-full hover:bg-subtle-separator">
                             <PlusIcon />
                           </button>
                         </div>
                       </div>
-                      <p className="font-bold">${((item.artwork.discountedPrice ?? item.artwork.price) * item.quantity).toFixed(2)}</p>
+                      <p className="font-bold">${(parseFloat(item.merchandise.price.amount) * item.quantity).toFixed(2)}</p>
                     </li>
                   ))}
                 </ul>
@@ -62,9 +68,9 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
               <div className="p-6 border-t border-subtle-separator">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-lg">Subtotal</span>
-                  <span className="text-xl font-bold">${getCartTotal().toFixed(2)}</span>
+                  <span className="text-xl font-bold">${parseFloat(getCartTotal()).toFixed(2)}</span>
                 </div>
-                <button className="w-full py-3 bg-secondary-accent text-primary-bg font-bold text-lg rounded-md hover:bg-orange-700 transition-colors">
+                <button onClick={handleCheckout} className="w-full py-3 bg-secondary-accent text-primary-bg font-bold text-lg rounded-md hover:bg-orange-700 transition-colors disabled:bg-gray-600" disabled={!checkoutUrl}>
                   Proceed to Checkout
                 </button>
               </div>

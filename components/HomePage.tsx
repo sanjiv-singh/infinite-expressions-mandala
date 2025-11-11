@@ -1,11 +1,11 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { artworks } from '../constants';
 import ProductCard from './ProductCard';
+import { useProducts } from '@shopify/buy-react';
 
 const HomePage: React.FC = () => {
-  const featuredArtworks = artworks.slice(0, 3);
+  // Fetch a few products to feature on the homepage
+  const { data: products, loading } = useProducts({ first: 3 });
 
   return (
     <div className="bg-primary-bg text-primary-text">
@@ -26,11 +26,15 @@ const HomePage: React.FC = () => {
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-serif font-bold text-center mb-12">Featured Collections</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredArtworks.map(artwork => (
-              <ProductCard key={artwork.id} artwork={artwork} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center">Loading...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {products.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

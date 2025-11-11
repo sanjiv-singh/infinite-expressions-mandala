@@ -21,7 +21,8 @@ const WishlistPage: React.FC = () => {
       {wishlistItems.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {wishlistItems.map(artwork => (
-            <ProductCard key={artwork.id} artwork={artwork} />
+            // FIX: The ProductCard component expects a `product` prop, not `artwork`.
+            <ProductCard key={artwork.id} product={artwork} />
           ))}
         </div>
       ) : (

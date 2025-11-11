@@ -1,46 +1,30 @@
-
 import React, { useState } from 'react';
-import { artworks } from '../constants';
 import ProductCard from './ProductCard';
 import FilterPanel from './FilterPanel';
+import { useProducts } from '@shopify/buy-react';
 
 const ShopPage: React.FC = () => {
-  const [filteredArtworks, setFilteredArtworks] = useState(artworks);
+  const { data: products, loading } = useProducts();
+  
+  // Note: Filtering and sorting would now ideally be done via the Shopify API query.
+  // This is a basic implementation that shows all products.
   const [sortOption, setSortOption] = useState('newest');
 
-  // This is a placeholder for filter logic. In a real app, this would be more complex.
-  const handleFilterChange = (filters: any) => {
-    // Basic filtering example
-    let newArtworks = [...artworks];
-    if (filters.type !== 'all') {
-      newArtworks = newArtworks.filter(art => art.type === filters.type);
+  const sortedProducts = products ? [...products].sort((a, b) => {
+    const priceA = parseFloat(a.variants.nodes[0].price.amount);
+    const priceB = parseFloat(b.variants.nodes[0].price.amount);
+    switch (sortOption) {
+      case 'price-low-high':
+        return priceA - priceB;
+      case 'price-high-low':
+        return priceB - priceA;
+      case 'newest':
+      default:
+        // This assumes the API returns them in a somewhat consistent order.
+        // For true "newest", you'd sort by `createdAt`.
+        return 0; 
     }
-    // More filters would go here...
-    
-    // Sorting logic
-    newArtworks.sort((a, b) => {
-      const priceA = a.discountedPrice ?? a.price;
-      const priceB = b.discountedPrice ?? b.price;
-      switch (sortOption) {
-        case 'price-low-high':
-          return priceA - priceB;
-        case 'price-high-low':
-          return priceB - priceA;
-        case 'newest':
-        default:
-          return b.id - a.id;
-      }
-    });
-
-    setFilteredArtworks(newArtworks);
-  };
-
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSortOption(e.target.value);
-    // Re-apply filters and sorting
-    // This is simplified. Ideally, filter state would be managed more robustly.
-    handleFilterChange({ type: 'all' }); 
-  };
+  }) : [];
   
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -51,17 +35,17 @@ const ShopPage: React.FC = () => {
 
       <div className="flex flex-col lg:flex-row gap-8">
         <aside className="w-full lg:w-1/4 xl:w-1/5">
-          <FilterPanel onFilterChange={handleFilterChange} />
+          <FilterPanel onFilterChange={() => {}} />
         </aside>
         <main className="w-full lg:w-3/4 xl:w-4/5">
           <div className="flex justify-between items-center mb-6 pb-4 border-b border-subtle-separator">
-            <p className="text-gray-400">{filteredArtworks.length} artworks found</p>
+            <p className="text-gray-400">{loading ? 'Loading...' : `${sortedProducts.length} artworks found`}</p>
             <div className="flex items-center space-x-2">
               <label htmlFor="sort" className="text-sm">Sort by:</label>
               <select 
                 id="sort" 
                 value={sortOption}
-                onChange={handleSortChange}
+                onChange={(e) => setSortOption(e.target.value)}
                 className="bg-subtle-separator border border-gray-600 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-accent"
               >
                 <option value="newest">Newest</option>
@@ -70,11 +54,15 @@ const ShopPage: React.FC = () => {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-            {filteredArtworks.map(artwork => (
-              <ProductCard key={artwork.id} artwork={artwork} />
-            ))}
-          </div>
+          {loading ? (
+             <div className="text-center py-20">Loading artworks...</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+              {sortedProducts.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </main>
       </div>
     </div>

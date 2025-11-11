@@ -1,4 +1,7 @@
+// The Artwork and CartItem interfaces are now deprecated.
+// We will use the types provided by the @shopify/buy-react SDK.
 
+// The Artwork type is re-added for the Admin page, which is not yet migrated to Shopify's product management.
 export interface Artwork {
   id: number;
   title: string;
@@ -6,24 +9,19 @@ export interface Artwork {
   dimensions: string;
   medium: string;
   price: number;
-  discountedPrice?: number;
-  discountPercentage?: number;
-  availability: 'Available' | 'Sold' | 'Reserved';
+  availability: 'Available' | 'Sold Out' | 'On Hold';
   type: 'Original' | 'Print';
   primaryColor: string;
   theme: string;
   imageUrl: string;
   images: string[];
-}
-
-export interface CartItem {
-  artwork: Artwork;
-  quantity: number;
+  discountPercentage?: number;
+  discountedPrice?: number;
 }
 
 export interface Review {
   id: number;
-  artworkId: number;
+  artworkId: number; // This will need to be mapped to a Shopify product ID or handle
   author: string;
   rating: number; // 1 to 5
   text: string;

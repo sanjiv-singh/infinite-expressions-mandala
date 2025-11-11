@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { artworks as initialArtworks } from '../constants';
 import type { Artwork } from '../types';
 import AdminArtworkForm from './AdminArtworkForm';
 
@@ -20,7 +19,8 @@ const newArtworkTemplate: Omit<Artwork, 'id'> = {
 };
 
 const AdminPage: React.FC = () => {
-  const [artworks, setArtworks] = useState<Artwork[]>(initialArtworks);
+  // FIX: Initialize with an empty array as the mock data constant has been removed.
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [modalArtwork, setModalArtwork] = useState<Artwork | Omit<Artwork, 'id'> | null>(null);
 
   const handleAddNew = () => {
