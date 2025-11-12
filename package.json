@@ -12,7 +12,7 @@
     "react-router-dom": "^7.9.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "@shopify/buy-react": "^1.0.0"
+    "@shopify/hydrogen-react": "^2025.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

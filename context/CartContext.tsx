@@ -1,5 +1,8 @@
 import React, { createContext, useContext, ReactNode, useCallback } from 'react';
-import { useCart as useShopifyCart, useCartLinesAdd, useCartLinesRemove, useCartLinesUpdate } from '@shopify/buy-react';
+// FIX: The `useCartLines...` hooks are not exported. Cart mutations are handled by functions returned from the `useCart` hook.
+import { useCart as useShopifyCart } from '@shopify/hydrogen-react';
+import type { Cart } from '@shopify/hydrogen-react/storefront-api-types';
+
 
 // This type is a placeholder. You would typically get more specific types from the SDK.
 type ShopifyProductVariant = {
@@ -7,7 +10,8 @@ type ShopifyProductVariant = {
 };
 
 interface CartContextType {
-  cart: ReturnType<typeof useShopifyCart>;
+  // FIX: The `cart` property should be of type `Cart | undefined` as it comes from `useCart().data`.
+  cart: Cart | undefined;
   addToCart: (variant: ShopifyProductVariant, quantity?: number) => void;
   removeFromCart: (lineId: string) => void;
   updateQuantity: (lineId: string, quantity: number) => void;
@@ -19,26 +23,33 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const cart = useShopifyCart();
-  const addLines = useCartLinesAdd();
-  const removeLines = useCartLinesRemove();
-  const updateLines = useCartLinesUpdate();
+  // FIX: Destructure mutation functions and cart data from the `useShopifyCart` hook.
+  const { data: cart, linesAdd, linesRemove, linesUpdate, checkoutUrl: shopifyCheckoutUrl } = useShopifyCart();
 
   const addToCart = useCallback((variant: ShopifyProductVariant, quantity: number = 1) => {
-    addLines([{ merchandiseId: variant.id, quantity }]);
-  }, [addLines]);
+    // FIX: Use the `linesAdd` function from the `useCart` hook.
+    if (linesAdd) {
+      linesAdd([{ merchandiseId: variant.id, quantity }]);
+    }
+  }, [linesAdd]);
 
   const removeFromCart = useCallback((lineId: string) => {
-    removeLines([lineId]);
-  }, [removeLines]);
+    // FIX: Use the `linesRemove` function from the `useCart` hook.
+    if (linesRemove) {
+      linesRemove([lineId]);
+    }
+  }, [linesRemove]);
 
   const updateQuantity = useCallback((lineId: string, quantity: number) => {
     if (quantity > 0) {
-      updateLines([{ id: lineId, quantity }]);
+      // FIX: Use the `linesUpdate` function from the `useCart` hook.
+      if (linesUpdate) {
+        linesUpdate([{ id: lineId, quantity }]);
+      }
     } else {
       removeFromCart(lineId);
     }
-  }, [updateLines, removeFromCart]);
+  }, [linesUpdate, removeFromCart]);
 
   const getCartTotal = () => {
     return cart?.cost?.totalAmount?.amount ?? '0.00';
@@ -48,9 +59,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return cart?.lines?.reduce((total, line) => total + line.quantity, 0) ?? 0;
   };
   
-  const checkoutUrl = cart?.checkoutUrl ?? null;
+  // FIX: The checkout URL is available directly from the `useCart` hook.
+  const checkoutUrl = shopifyCheckoutUrl ?? null;
 
   return (
+    // FIX: Pass the `cart` data object and correct checkoutUrl to the context.
     <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, getCartTotal, getItemCount, checkoutUrl }}>
       {children}
     </CartContext.Provider>

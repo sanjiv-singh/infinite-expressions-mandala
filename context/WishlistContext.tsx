@@ -1,6 +1,9 @@
 
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { Product } from '@shopify/buy-react';
+// FIX: The `Product` type is not exported from the main `@shopify/hydrogen-react` package.
+// It should be imported from `@shopify/hydrogen-react/storefront-api-types`.
+import type { Product } from '@shopify/hydrogen-react/storefront-api-types';
 
 interface WishlistContextType {
   wishlistItems: Product[];

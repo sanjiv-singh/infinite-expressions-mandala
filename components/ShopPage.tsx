@@ -1,10 +1,52 @@
 import React, { useState } from 'react';
 import ProductCard from './ProductCard';
 import FilterPanel from './FilterPanel';
-import { useProducts } from '@shopify/buy-react';
+// FIX: The `useProducts` hook is not available. Use `useShopQuery` to fetch a list of products.
+import { useShopQuery } from '@shopify/hydrogen-react';
+// FIX: Import `Product` type from the correct path.
+import type { Product } from '@shopify/hydrogen-react/storefront-api-types';
+
+// FIX: Define a GraphQL query to fetch products with the fields required by ProductCard.
+const ALL_PRODUCTS_QUERY = `
+  query AllProducts {
+    products(first: 20) {
+      nodes {
+        id
+        title
+        handle
+        productType
+        images(first: 1) {
+          nodes {
+            url
+            altText
+          }
+        }
+        variants(first: 1) {
+          nodes {
+            id
+            availableForSale
+            price {
+              amount
+              currencyCode
+            }
+            compareAtPrice {
+              amount
+              currencyCode
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 const ShopPage: React.FC = () => {
-  const { data: products, loading } = useProducts();
+  // FIX: Use `useShopQuery` to fetch products.
+  const { data } = useShopQuery<{ products: { nodes: Product[] } }>({
+    query: ALL_PRODUCTS_QUERY,
+  });
+  const products = data?.products.nodes;
+  const loading = !data;
   
   // Note: Filtering and sorting would now ideally be done via the Shopify API query.
   // This is a basic implementation that shows all products.

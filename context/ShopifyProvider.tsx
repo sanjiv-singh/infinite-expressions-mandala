@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShopifyProvider as BaseShopifyProvider } from '@shopify/buy-react';
+import { ShopifyProvider as BaseShopifyProvider } from '@shopify/hydrogen-react';
 
 // --- IMPORTANT ---
 // To connect your Shopify store, replace the placeholder values below

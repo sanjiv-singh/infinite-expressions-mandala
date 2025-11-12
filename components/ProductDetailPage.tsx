@@ -5,12 +5,55 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import StarRating from './StarRating';
 import { HeartIcon } from './IconComponents';
-import { useProduct } from '@shopify/buy-react';
+// FIX: The `useProduct` hook is not available or was used incorrectly. Use `useShopQuery` to fetch product data.
+import { useShopQuery } from '@shopify/hydrogen-react';
+// FIX: Import `Product` type from the correct path.
+import type { Product } from '@shopify/hydrogen-react/storefront-api-types';
+
+// FIX: Define a GraphQL query to fetch a single product by its handle.
+const PRODUCT_QUERY = `
+  query ProductDetails($handle: String!) {
+    product(handle: $handle) {
+      id
+      title
+      handle
+      descriptionHtml
+      productType
+      images(first: 10) {
+        nodes {
+          id
+          url
+          altText
+        }
+      }
+      variants(first: 1) {
+        nodes {
+          id
+          availableForSale
+          price {
+            amount
+            currencyCode
+          }
+          compareAtPrice {
+            amount
+            currencyCode
+          }
+        }
+      }
+    }
+  }
+`;
 
 
 const ProductDetailPage: React.FC = () => {
   const { handle } = useParams<{ handle: string }>();
-  const { data: product, loading } = useProduct({ handle });
+  // FIX: Fetch product data using `useShopQuery` with the product handle from the URL.
+  const { data } = useShopQuery<{ product: Product | null }>({
+    query: PRODUCT_QUERY,
+    variables: { handle: handle! }
+  });
+  const product = data?.product;
+  const loading = !data;
 
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();

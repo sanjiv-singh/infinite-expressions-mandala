@@ -1,11 +1,54 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
-import { useProducts } from '@shopify/buy-react';
+// FIX: The `useProducts` hook is not available. Use `useShopQuery` to fetch a list of products.
+import { useShopQuery } from '@shopify/hydrogen-react';
+// FIX: Import `Product` type from the correct path.
+import type { Product } from '@shopify/hydrogen-react/storefront-api-types';
+
+// FIX: Define a GraphQL query to fetch featured products with the fields required by ProductCard.
+const FEATURED_PRODUCTS_QUERY = `
+  query FeaturedProducts {
+    products(first: 3) {
+      nodes {
+        id
+        title
+        handle
+        productType
+        images(first: 1) {
+          nodes {
+            url
+            altText
+          }
+        }
+        variants(first: 1) {
+          nodes {
+            id
+            availableForSale
+            price {
+              amount
+              currencyCode
+            }
+            compareAtPrice {
+              amount
+              currencyCode
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 
 const HomePage: React.FC = () => {
   // Fetch a few products to feature on the homepage
-  const { data: products, loading } = useProducts({ first: 3 });
+  // FIX: Use `useShopQuery` to fetch products.
+  const { data } = useShopQuery<{ products: { nodes: Product[] } }>({
+    query: FEATURED_PRODUCTS_QUERY,
+  });
+  const loading = !data;
+  const products = data?.products.nodes ?? [];
 
   return (
     <div className="bg-primary-bg text-primary-text">
